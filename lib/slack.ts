@@ -22,18 +22,19 @@ async function slackCall<T>(method: string, body: Record<string, unknown>): Prom
   return data;
 }
 
-export async function getSelfUserId(): Promise<string> {
-  const data = await slackCall<{ user_id: string }>("auth.test", {});
-  return data.user_id;
+function targetUserId(): string {
+  const id = process.env.SLACK_USER_ID;
+  if (!id) throw new Error("SLACK_USER_ID is not set");
+  return id;
 }
 
-// This demo runs against a single-person Slack workspace, so every nudge is sent
-// as a self-DM addressed by name — in a real team workspace this would resolve
-// the actual teammate via users.list and DM them directly.
+// This demo runs against a single-person Slack workspace, so every nudge is sent as
+// a DM to the one real human (addressed by the commitment owner's name in the message
+// text) — in a real team workspace this would resolve the actual teammate via
+// users.list and DM them directly instead of a fixed SLACK_USER_ID.
 export async function openSelfDm(): Promise<string> {
-  const userId = await getSelfUserId();
   const data = await slackCall<{ channel: { id: string } }>("conversations.open", {
-    users: userId,
+    users: targetUserId(),
   });
   return data.channel.id;
 }

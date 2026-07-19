@@ -235,29 +235,30 @@ export function Workspace() {
     note: string,
     quote: string
   ) {
+    const target = commitments.find((c) => c.id === commitmentId);
+    if (!target) return;
+
     const today = new Date().toISOString().slice(0, 10);
-    setCommitments((prev) =>
-      prev.map((c) => {
-        if (c.id !== commitmentId) return c;
-        const type: TimelineEvent["type"] = outcome === "fulfilled" ? "fulfilled" : "reaffirmed";
-        const event: TimelineEvent = {
-          meetingId: "slack",
-          meetingLabel: "Slack follow-up",
-          meetingDate: today,
-          type,
-          note: outcome === "fulfilled" ? `Fulfilled via Slack: ${note}` : `Slack reply: ${note}`,
-          quote,
-        };
-        const timeline = [...c.timeline, event];
-        const { status, overdueStreak } = deriveStatus(c.dueDate, timeline);
-        pushLog(
-          outcome === "fulfilled"
-            ? `${c.speaker} confirmed via Slack: "${c.text}"`
-            : `${c.speaker} replied on Slack about: "${c.text}"`,
-          outcome === "fulfilled" ? "good" : "info"
-        );
-        return { ...c, status, overdueStreak, timeline };
-      })
+    const type: TimelineEvent["type"] = outcome === "fulfilled" ? "fulfilled" : "reaffirmed";
+    const event: TimelineEvent = {
+      meetingId: "slack",
+      meetingLabel: "Slack follow-up",
+      meetingDate: today,
+      type,
+      note: outcome === "fulfilled" ? `Fulfilled via Slack: ${note}` : `Slack reply: ${note}`,
+      quote,
+    };
+    const timeline = [...target.timeline, event];
+    const { status, overdueStreak } = deriveStatus(target.dueDate, timeline);
+
+    setCommitments(
+      commitments.map((c) => (c.id === commitmentId ? { ...c, status, overdueStreak, timeline } : c))
+    );
+    pushLog(
+      outcome === "fulfilled"
+        ? `${target.speaker} confirmed via Slack: "${target.text}"`
+        : `${target.speaker} replied on Slack about: "${target.text}"`,
+      outcome === "fulfilled" ? "good" : "info"
     );
   }
 
@@ -312,13 +313,13 @@ export function Workspace() {
   }, [commitments]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-6 pb-32">
+    <div id="get-started" className="mx-auto w-full max-w-6xl px-6 pb-32 scroll-mt-8">
       {/* Controls */}
       <div className="grid gap-4 rounded-xl border border-ink-line bg-ink-raised/60 p-5 md:grid-cols-[1fr_auto]">
         <div>
-          <h2 className="font-display text-lg text-paper">Case file</h2>
+          <h2 className="font-display text-lg text-paper">Get started</h2>
           <p className="mt-1 text-sm text-paper-dim">
-            Load the scripted scenario, or paste your own meeting transcripts and process them one at a time.
+            Try the example below, or add your own meeting further down.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -430,18 +431,23 @@ export function Workspace() {
 
       {/* Processing log */}
       {log.length > 0 && (
-        <div className="mt-6 rounded-xl border border-ink-line bg-ink/60 p-4 font-mono-tight text-xs">
-          {log.map((l) => (
-            <div
-              key={l.id}
-              className={`rise-in py-0.5 ${
-                l.tone === "warn" ? "text-amber" : l.tone === "good" ? "text-green" : "text-paper-dim"
-              }`}
-            >
-              › {l.text}
-            </div>
-          ))}
-        </div>
+        <details className="mt-6 rounded-xl border border-ink-line bg-ink/60 p-4">
+          <summary className="cursor-pointer font-mono-tight text-xs text-paper-dim">
+            Show reasoning ({log.length})
+          </summary>
+          <div className="mt-3 font-mono-tight text-xs">
+            {log.map((l) => (
+              <div
+                key={l.id}
+                className={`rise-in py-0.5 ${
+                  l.tone === "warn" ? "text-amber" : l.tone === "good" ? "text-green" : "text-paper-dim"
+                }`}
+              >
+                › {l.text}
+              </div>
+            ))}
+          </div>
+        </details>
       )}
 
       {/* Scoreboard */}

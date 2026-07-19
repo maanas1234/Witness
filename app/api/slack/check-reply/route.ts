@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { zodResponseFormat } from "openai/helpers/zod";
 import { getRepliesAfter } from "@/lib/slack";
 import { getGroq, GROQ_MODEL } from "@/lib/groq";
 
 const ClassifySchema = z.object({
   outcome: z.enum(["fulfilled", "still_working", "unclear"]),
-  note: z.string().describe("One short clause summarizing the reply for the timeline"),
+  note: z.string(),
 });
 
 export async function POST(req: NextRequest) {
@@ -24,7 +23,7 @@ export async function POST(req: NextRequest) {
     const replyText = replies.map((r) => r.text).join("\n");
 
     const groq = getGroq();
-    const completion = await groq.chat.completions.parse({
+    const completion = await groq.chat.completions.create({
       model: GROQ_MODEL,
       messages: [
         {
@@ -32,22 +31,22 @@ export async function POST(req: NextRequest) {
           content:
             "Classify a Slack reply to an accountability nudge about a specific commitment. " +
             "'fulfilled' = they say it's done. 'still_working' = they acknowledge it's pending, give " +
-            "an update, or ask for more time. 'unclear' = the reply doesn't actually address it.",
+            "an update, or ask for more time. 'unclear' = the reply doesn't actually address it. " +
+            "'note' is one short clause summarizing the reply for a timeline. " +
+            'Respond with ONLY a JSON object: {"outcome": "...", "note": "..."}',
         },
         {
           role: "user",
           content: `Commitment: "${commitmentText}"\n\nReply: "${replyText}"`,
         },
       ],
-      response_format: zodResponseFormat(ClassifySchema, "classification"),
+      response_format: { type: "json_object" },
       temperature: 0.1,
       max_tokens: 300,
     });
 
-    const parsed = completion.choices[0].message.parsed;
-    if (!parsed) {
-      return NextResponse.json({ error: "Model returned no parseable output" }, { status: 502 });
-    }
+    const raw = completion.choices[0]?.message?.content ?? "{}";
+    const parsed = ClassifySchema.parse(JSON.parse(raw));
 
     return NextResponse.json({ found: true, replyText, ...parsed });
   } catch (err) {
