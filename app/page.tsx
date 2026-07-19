@@ -7,10 +7,10 @@ export default function Home() {
   return (
     <>
       <div
-        className="fixed inset-0 -z-10 bg-cover bg-center opacity-25"
+        className="fixed inset-0 -z-10 bg-cover bg-center opacity-60"
         style={{ backgroundImage: "url(/hero-bg.jpg)" }}
       />
-      <div className="fixed inset-0 -z-10 bg-gradient-to-b from-ink/85 via-ink/80 to-ink" />
+      <div className="fixed inset-0 -z-10 bg-gradient-to-b from-ink/55 via-ink/60 to-ink/85" />
 
       <main className="flex-1 pb-10">
         <Hero />

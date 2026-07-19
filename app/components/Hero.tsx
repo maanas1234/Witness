@@ -1,6 +1,6 @@
 export function Hero() {
   return (
-    <div className="relative border-b border-ink-line/60">
+    <div className="relative">
       <div className="mx-auto flex w-full max-w-3xl flex-col items-center px-6 py-24 text-center">
         <h1 className="font-display text-4xl leading-[1.15] text-paper md:text-5xl">
           Nobody forgets a promise made <span className="text-amber">on the record.</span>
