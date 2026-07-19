@@ -4,6 +4,13 @@ import { useEffect, useRef, useState } from "react";
 
 type BotStatus = "idle" | "joining" | "in_meeting" | "done" | "error";
 
+function friendlyError(message: string): string {
+  if (message.includes("ATTENDEE_API_KEY") || message.includes("ATTENDEE_BASE_URL")) {
+    return "This feature needs a local meeting-bot server — see the README to run it on your machine.";
+  }
+  return message;
+}
+
 const STATE_LABEL: Record<string, string> = {
   ready: "Preparing…",
   joining: "Joining the meeting…",
@@ -53,7 +60,7 @@ export function BotJoinPanel({
             if (pollRef.current) clearInterval(pollRef.current);
             if (data.error) {
               setStatus("error");
-              setError(data.error);
+              setError(friendlyError(data.error));
             } else {
               setStatus("done");
               onTranscriptReady(data.text, "Meeting via Witness bot");
@@ -62,12 +69,12 @@ export function BotJoinPanel({
         } catch (e) {
           if (pollRef.current) clearInterval(pollRef.current);
           setStatus("error");
-          setError(e instanceof Error ? e.message : "Polling failed");
+          setError(friendlyError(e instanceof Error ? e.message : "Polling failed"));
         }
       }, 5000);
     } catch (e) {
       setStatus("error");
-      setError(e instanceof Error ? e.message : "Failed to create bot");
+      setError(friendlyError(e instanceof Error ? e.message : "Failed to create bot"));
     }
   }
 
