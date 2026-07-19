@@ -1,13 +1,7 @@
 export function Hero() {
   return (
-    <div className="relative overflow-hidden border-b border-ink-line">
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-fixed opacity-35"
-        style={{ backgroundImage: "url(/hero-bg.jpg)" }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-ink/80 via-ink/70 to-ink" />
-
-      <div className="relative mx-auto flex w-full max-w-3xl flex-col items-center px-6 py-24 text-center">
+    <div className="relative border-b border-ink-line/60">
+      <div className="mx-auto flex w-full max-w-3xl flex-col items-center px-6 py-24 text-center">
         <h1 className="font-display text-4xl leading-[1.15] text-paper md:text-5xl">
           Nobody forgets a promise made <span className="text-amber">on the record.</span>
         </h1>

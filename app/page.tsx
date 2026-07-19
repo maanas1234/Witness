@@ -5,14 +5,22 @@ export default function Home() {
   const attendeeEnabled = Boolean(process.env.ATTENDEE_API_KEY);
 
   return (
-    <main className="flex-1 pb-10">
-      <Hero />
-      <div className="pt-10">
-        <Workspace attendeeEnabled={attendeeEnabled} />
-      </div>
-      <footer className="mx-auto mt-16 w-full max-w-6xl px-6 font-mono-tight text-xs text-paper-dim">
-        Witness — built for the OpenAI × NamasteDev Codex Hackathon.
-      </footer>
-    </main>
+    <>
+      <div
+        className="fixed inset-0 -z-10 bg-cover bg-center opacity-25"
+        style={{ backgroundImage: "url(/hero-bg.jpg)" }}
+      />
+      <div className="fixed inset-0 -z-10 bg-gradient-to-b from-ink/85 via-ink/80 to-ink" />
+
+      <main className="flex-1 pb-10">
+        <Hero />
+        <div className="pt-10">
+          <Workspace attendeeEnabled={attendeeEnabled} />
+        </div>
+        <footer className="mx-auto mt-16 w-full max-w-6xl px-6 font-mono-tight text-xs text-paper-dim">
+          Witness — built for the OpenAI × NamasteDev Codex Hackathon.
+        </footer>
+      </main>
+    </>
   );
 }
