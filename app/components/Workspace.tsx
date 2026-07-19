@@ -6,6 +6,7 @@ import { deriveStatus, STATUS_META } from "@/lib/status";
 import { DEMO_MEETINGS } from "@/lib/demo-data";
 import { CommitmentCard } from "./CommitmentCard";
 import { BotJoinPanel } from "./BotJoinPanel";
+import { MeetingBotCallout } from "./MeetingBotCallout";
 import { ChatPanel } from "./ChatPanel";
 import { MarkdownLite } from "@/lib/markdown-lite";
 
@@ -25,7 +26,7 @@ const COLUMN_LABEL: Record<Commitment["status"], string> = {
   fulfilled: "Fulfilled",
 };
 
-export function Workspace() {
+export function Workspace({ attendeeEnabled }: { attendeeEnabled: boolean }) {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [commitments, setCommitments] = useState<Commitment[]>([]);
   const [log, setLog] = useState<LogLine[]>([]);
@@ -350,37 +351,12 @@ export function Workspace() {
       )}
 
       {/* Manual meeting input */}
-      <details className="mt-4 rounded-xl border border-ink-line bg-ink-raised/40 p-5">
-        <summary className="cursor-pointer font-display text-base text-paper">
-          Add your own meeting
-        </summary>
-        <div className="mt-4 flex items-center gap-3 rounded-md border border-dashed border-ink-line px-4 py-3">
-          <label className="cursor-pointer text-sm font-medium text-wire hover:underline">
-            {transcribing ? "Transcribing…" : "Upload a recording (audio/video)"}
-            <input
-              type="file"
-              accept="audio/*,video/*"
-              className="hidden"
-              disabled={transcribing}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleAudioUpload(file);
-                e.target.value = "";
-              }}
-            />
-          </label>
-          <span className="text-xs text-paper-dim">
-            transcribed with Whisper, fills the transcript below — or just paste text directly
-          </span>
-        </div>
-        <BotJoinPanel
-          onTranscriptReady={(text, suggestedLabel) => {
-            setManualTranscript(text);
-            if (!manualLabel.trim()) setManualLabel(suggestedLabel);
-            if (!manualDate.trim()) setManualDate(new Date().toISOString().slice(0, 10));
-          }}
-        />
-        <div className="mt-3 grid gap-3 md:grid-cols-2">
+      <div className="mt-4 rounded-xl border border-ink-line bg-ink-raised/40 p-5">
+        <h3 className="font-display text-base text-paper">Add a meeting</h3>
+        <p className="mt-1 text-sm text-paper-dim">
+          Paste a transcript below, then queue it.
+        </p>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
           <input
             value={manualLabel}
             onChange={(e) => setManualLabel(e.target.value)}
@@ -398,16 +374,52 @@ export function Workspace() {
           value={manualTranscript}
           onChange={(e) => setManualTranscript(e.target.value)}
           placeholder="Paste the transcript here…"
-          rows={6}
+          rows={8}
           className="mt-3 w-full rounded-md border border-ink-line bg-ink px-3 py-2 text-sm text-paper placeholder:text-paper-dim/60 focus:border-wire focus:outline-none"
         />
         <button
           onClick={addManualMeeting}
-          className="mt-3 rounded-md border border-ink-line px-4 py-2 text-sm font-medium text-paper hover:bg-ink-line/40"
+          className="mt-3 rounded-md bg-paper px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-95"
         >
           Queue meeting
         </button>
-      </details>
+
+        <details className="mt-5 border-t border-ink-line pt-4">
+          <summary className="cursor-pointer font-mono-tight text-xs uppercase tracking-wider text-paper-dim">
+            More ways to get a transcript in
+          </summary>
+          <div className="mt-3 flex items-center gap-3 rounded-md border border-dashed border-ink-line px-4 py-3">
+            <label className="cursor-pointer text-sm font-medium text-wire hover:underline">
+              {transcribing ? "Transcribing…" : "Upload a recording (audio/video)"}
+              <input
+                type="file"
+                accept="audio/*,video/*"
+                className="hidden"
+                disabled={transcribing}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleAudioUpload(file);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            <span className="text-xs text-paper-dim">
+              transcribed with Whisper, fills the transcript above
+            </span>
+          </div>
+          {attendeeEnabled ? (
+            <BotJoinPanel
+              onTranscriptReady={(text, suggestedLabel) => {
+                setManualTranscript(text);
+                if (!manualLabel.trim()) setManualLabel(suggestedLabel);
+                if (!manualDate.trim()) setManualDate(new Date().toISOString().slice(0, 10));
+              }}
+            />
+          ) : (
+            <MeetingBotCallout />
+          )}
+        </details>
+      </div>
 
       {/* Meeting queue */}
       {meetings.length > 0 && (
